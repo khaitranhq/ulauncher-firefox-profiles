@@ -20,7 +20,7 @@
       "type": "input",
       "name": "Firefox Root Directory",
       "description": "Select the firefox root directory, which contains all profiles.",
-      "default_value": "~/.mozilla/firefox/"
+      "default_value": "~/snap/firefox/common/.mozilla/firefox/"
     },
     {
       "id": "firefox_cmd",

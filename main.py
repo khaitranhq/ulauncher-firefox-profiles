@@ -12,6 +12,7 @@ import logging
 # create an instance of logger at a module level
 logger = logging.getLogger(__name__)
 
+
 def readConfig(firefox_config_folder):
     config = configparser.ConfigParser(allow_no_value=True)
     config.read(os.path.join(firefox_config_folder, "profiles.ini"))
@@ -48,25 +49,28 @@ class FirefoxProfilesExtension(Extension):
 
 
 class KeywordQueryEventListener(EventListener):
-    def on_event(self, event, extension): # pyright: ignore
+    def on_event(self, event, extension):  # pyright: ignore
         firefox_config_folder = os.path.expanduser(
             extension.preferences["firefox_folder"]
         )
         profiles = scan_firefox_folder(firefox_config_folder)
+        logger.debug(profiles)
 
         # Filter by query if inserted
         query = event.get_argument()
+        sastified_profiles = []
         if query:
             query = query.strip().lower()
-            logger.debug(query)
             for profile in profiles:
                 name = profile["name"].lower()
-                if query not in name:
-                    profiles.remove(profile)
+                if query in name:
+                    sastified_profiles.append(profile)
+        else:
+            sastified_profiles = profiles
 
         # Create launcher entries
         entries = []
-        for profile in profiles:
+        for profile in sastified_profiles:
             entries.append(
                 ExtensionResultItem(
                     icon="images/icon.png",
