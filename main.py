@@ -1,6 +1,5 @@
 import os
 import subprocess
-import json
 import configparser
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
@@ -8,7 +7,10 @@ from ulauncher.api.shared.event import KeywordQueryEvent, ItemEnterEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
+import logging
 
+# create an instance of logger at a module level
+logger = logging.getLogger(__name__)
 
 def readConfig(firefox_config_folder):
     config = configparser.ConfigParser(allow_no_value=True)
@@ -17,15 +19,13 @@ def readConfig(firefox_config_folder):
 
 
 def scan_firefox_folder(firefox_config_folder):
-    profiles = []
-
     config = readConfig(firefox_config_folder)
 
     profile_list = list(
         filter(lambda section: "profile" in section.lower(), config.sections())
     )
 
-    profile_list.sort(),
+    profile_list.sort()
     return list(
         filter(
             lambda profile: "release" not in profile["name"],
@@ -42,13 +42,13 @@ def scan_firefox_folder(firefox_config_folder):
 
 class FirefoxProfilesExtension(Extension):
     def __init__(self):
-        super(FirefoxProfilesExtension, self).__init__()
+        super().__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
         self.subscribe(ItemEnterEvent, ItemEnterEventListener())
 
 
 class KeywordQueryEventListener(EventListener):
-    def on_event(self, event, extension):
+    def on_event(self, event, extension): # pyright: ignore
         firefox_config_folder = os.path.expanduser(
             extension.preferences["firefox_folder"]
         )
@@ -58,6 +58,7 @@ class KeywordQueryEventListener(EventListener):
         query = event.get_argument()
         if query:
             query = query.strip().lower()
+            logger.debug(query)
             for profile in profiles:
                 name = profile["name"].lower()
                 if query not in name:

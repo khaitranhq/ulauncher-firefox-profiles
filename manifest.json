@@ -2,7 +2,7 @@
   "required_api_version": "^2.0.0",
   "name": "Firefox Profiles",
   "description": "Provides an easy way to launch firefox with different user profiles",
-  "developer_name": "Andre Freitas <andrecfreitas58@gmail.com>",
+  "developer_name": "Khai Tran <khaitran.lewis@gmail.com>",
   "icon": "images/icon.png",
   "options": {
     "query_debounce": 0.1
