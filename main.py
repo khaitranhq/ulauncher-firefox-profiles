@@ -1,6 +1,5 @@
 import os
 import subprocess
-import json
 import configparser
 from ulauncher.api.client.Extension import Extension
 from ulauncher.api.client.EventListener import EventListener
@@ -8,6 +7,10 @@ from ulauncher.api.shared.event import KeywordQueryEvent, ItemEnterEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.ExtensionCustomAction import ExtensionCustomAction
+import logging
+
+# create an instance of logger at a module level
+logger = logging.getLogger(__name__)
 
 
 def readConfig(firefox_config_folder):
@@ -17,15 +20,13 @@ def readConfig(firefox_config_folder):
 
 
 def scan_firefox_folder(firefox_config_folder):
-    profiles = []
-
     config = readConfig(firefox_config_folder)
 
     profile_list = list(
         filter(lambda section: "profile" in section.lower(), config.sections())
     )
 
-    profile_list.sort(),
+    profile_list.sort()
     return list(
         filter(
             lambda profile: "release" not in profile["name"],
@@ -42,30 +43,34 @@ def scan_firefox_folder(firefox_config_folder):
 
 class FirefoxProfilesExtension(Extension):
     def __init__(self):
-        super(FirefoxProfilesExtension, self).__init__()
+        super().__init__()
         self.subscribe(KeywordQueryEvent, KeywordQueryEventListener())
         self.subscribe(ItemEnterEvent, ItemEnterEventListener())
 
 
 class KeywordQueryEventListener(EventListener):
-    def on_event(self, event, extension):
+    def on_event(self, event, extension):  # pyright: ignore
         firefox_config_folder = os.path.expanduser(
             extension.preferences["firefox_folder"]
         )
         profiles = scan_firefox_folder(firefox_config_folder)
+        logger.debug(profiles)
 
         # Filter by query if inserted
         query = event.get_argument()
+        sastified_profiles = []
         if query:
             query = query.strip().lower()
             for profile in profiles:
                 name = profile["name"].lower()
-                if query not in name:
-                    profiles.remove(profile)
+                if query in name:
+                    sastified_profiles.append(profile)
+        else:
+            sastified_profiles = profiles
 
         # Create launcher entries
         entries = []
-        for profile in profiles:
+        for profile in sastified_profiles:
             entries.append(
                 ExtensionResultItem(
                     icon="images/icon.png",
